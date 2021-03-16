@@ -923,6 +923,10 @@ elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
         set(connextdds_host_arch ${connextdds_host_arch} "x64Linux")
     elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "i686")
         set(connextdds_host_arch ${connextdds_host_arch} "i86Linux")
+    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "aarch64")
+        set(connextdds_host_arch ${connextdds_host_arch} "i86Linux" "x64Linux" "armv8")
+    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "armv7l")
+	    set(connextdds_host_arch ${connextdds_host_arch} "i86Linux" "armv7l")
     else()
         message(FATAL_ERROR
             "${CMAKE_HOST_SYSTEM} is not supported as host architecture")
@@ -939,6 +943,12 @@ if(CONNEXTDDS_ARCH MATCHES "Linux")
     set(CONNEXTDDS_COMPILE_DEFINITIONS RTI_UNIX RTI_LINUX)
 
     if(CONNEXTDDS_ARCH MATCHES "x64Linux")
+        set(CONNEXTDDS_COMPILE_DEFINITIONS
+            ${CONNEXTDDS_COMPILE_DEFINITIONS}
+            RTI_64BIT)
+    endif()
+
+    if(CONNEXTDDS_ARCH MATCHES "armv8")
         set(CONNEXTDDS_COMPILE_DEFINITIONS
             ${CONNEXTDDS_COMPILE_DEFINITIONS}
             RTI_64BIT)
