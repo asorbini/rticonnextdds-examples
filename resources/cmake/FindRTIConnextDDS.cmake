@@ -604,36 +604,54 @@ if(NOT DEFINED CONNEXTDDS_ARCH)
         foreach(architecture_name ${architectures_installed})
             # Because the lib folder contains both target libraries and
             # java jar files, here we exclude the "java" in our algorithm
-            # to guess the appropriate CONNEXTDDS_ARCH variable.
-            if(architecture_name STREQUAL "java")
+            # to guess the appropriate CONNEXTDDS_ARCH variable. We also exclude
+            # any name that doesn't start with a letter or a number.
+            if(architecture_name STREQUAL "java" OR
+              NOT architecture_name MATCHES "^[a-zA-Z0-9].*"
+            )
                 continue()
-            elseif("${architecture_name}" MATCHES ${CMAKE_HOST_SYSTEM_NAME})
-                    if(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
-                        # Get the installed Darwin
+            elseif("${architecture_name}" MATCHES ${CMAKE_HOST_SYSTEM_NAME} OR
+              (CMAKE_HOST_SYSTEM_NAME MATCHES "Windows" AND
+                architecture_name MATCHES "Win")
+            )
+                if(CMAKE_HOST_SYSTEM_NAME MATCHES "Darwin")
+                    # Get the installed Darwin
+                    set(CONNEXTDDS_ARCH "${architecture_name}")
+                elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
+                    if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86" AND
+                            "${architecture_name}" MATCHES "Win32")
+                        # Get the x86Win32 architecture
                         set(CONNEXTDDS_ARCH "${architecture_name}")
-                    elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Windows")
-                        if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86" AND
-                                "${architecture_name}" MATCHES "Win32")
-                            # Get the x86Win32 architecture
-                            set(CONNEXTDDS_ARCH "${architecture_name}")
-                        elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "AMD64" AND
-                                "${architecture_name}" MATCHES "Win64")
-                            # Get the x64Win64 architecture
-                            set(CONNEXTDDS_ARCH "${architecture_name}")
-                        endif()
-                    elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
-                        if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "i686" AND
-                            "${architecture_name}" MATCHES "x86Linux")
-                            # Get the x86Linux architecture
-                            set(CONNEXTDDS_ARCH "${architecture_name}")
+                    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "AMD64" AND
+                            "${architecture_name}" MATCHES "Win64")
+                        # Get the x64Win64 architecture
+                        set(CONNEXTDDS_ARCH "${architecture_name}")
+                    endif()
+                elseif(CMAKE_HOST_SYSTEM_NAME MATCHES "Linux")
+                    if(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "i686" AND
+                        "${architecture_name}" MATCHES "x86Linux")
+                        # Get the x86Linux architecture
+                        set(CONNEXTDDS_ARCH "${architecture_name}")
 
-                        elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64" AND
-                            "${architecture_name}" MATCHES "x64Linux")
-                            # Get the x64Linux architecture
-                            set(CONNEXTDDS_ARCH "${architecture_name}")
-                        endif()
+                    elseif(CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "x86_64" AND
+                        "${architecture_name}" MATCHES "x64Linux")
+                        # Get the x64Linux architecture
+                        set(CONNEXTDDS_ARCH "${architecture_name}")
                     endif()
                 endif()
+                if(NOT CONNEXTDDS_ARCH)
+                    connextdds_log_verbose("unsupported host architecture "
+                      "selected: ${architecture_name}")
+                    connextdds_log_debug("CMAKE_HOST_SYSTEM_NAME: "
+                      "${CMAKE_HOST_SYSTEM_NAME}")
+                      connextdds_log_debug("CMAKE_HOST_SYSTEM_PROCESSOR: "
+                      "${CMAKE_HOST_SYSTEM_PROCESSOR}")
+                    set(CONNEXTDDS_ARCH "${architecture_name}")
+                endif()
+            else()
+                connextdds_log_debug("foreign architecture ignored: "
+                  "${architecture_name}")
+            endif()
 
             if(CONNEXTDDS_ARCH)
                 break()
